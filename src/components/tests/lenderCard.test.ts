@@ -1,40 +1,36 @@
 import { describe, it, expect } from 'vitest';
-import { isUpdatedInLastMonth, formatCurrencyAmount } from '../LenderCard';
+import { isUpdatedInLast30Days, isUpdatedInLastMonth, formatCurrencyAmount } from '../LenderCard';
 
-describe('LenderCard - isUpdatedInLastMonth & formatCurrencyAmount', () => {
-  describe('isUpdatedInLastMonth', () => {
-    it('returns true when program date is in the same month and year as the reference date', () => {
-      const refDate = new Date('2026-04-28');
-      expect(isUpdatedInLastMonth('4/16/2026', refDate)).toBe(true);
-      expect(isUpdatedInLastMonth('4/1/2026', refDate)).toBe(true);
-      expect(isUpdatedInLastMonth('2026-04-10', refDate)).toBe(true);
+describe('LenderCard - isUpdatedInLast30Days & formatCurrencyAmount', () => {
+  describe('isUpdatedInLast30Days', () => {
+    it('returns true when program date is 30 days or less older from current date', () => {
+      const currentDate = new Date('2026-09-27');
+      expect(isUpdatedInLast30Days('9/27/2026', currentDate)).toBe(true);
+      expect(isUpdatedInLast30Days('9/15/2026', currentDate)).toBe(true);
+      expect(isUpdatedInLast30Days('8/29/2026', currentDate)).toBe(true);
+      // Backward-compatible alias
+      expect(isUpdatedInLastMonth('9/15/2026', currentDate)).toBe(true);
     });
 
-    it('returns true when program date is within 30 days of the reference date across month boundaries', () => {
-      const refDate = new Date('2026-05-05');
-      // 2026-04-20 is 15 days earlier
-      expect(isUpdatedInLastMonth('4/20/2026', refDate)).toBe(true);
-    });
-
-    it('returns false when program date is from an older month outside the 30-day window', () => {
-      const refDate = new Date('2026-04-28');
-      expect(isUpdatedInLastMonth('1/16/2026', refDate)).toBe(false);
-      expect(isUpdatedInLastMonth('2/3/2026', refDate)).toBe(false);
-      expect(isUpdatedInLastMonth('3/1/2026', refDate)).toBe(false);
+    it('returns false when program date is older than 30 days from current date', () => {
+      const currentDate = new Date('2026-09-27');
+      expect(isUpdatedInLast30Days('8/27/2026', currentDate)).toBe(false);
+      expect(isUpdatedInLast30Days('4/16/2026', currentDate)).toBe(false);
+      expect(isUpdatedInLast30Days('2/3/2026', currentDate)).toBe(false);
     });
 
     it('returns false when date is missing, undefined, or invalid', () => {
-      const refDate = new Date('2026-04-28');
-      expect(isUpdatedInLastMonth(undefined, refDate)).toBe(false);
-      expect(isUpdatedInLastMonth('', refDate)).toBe(false);
-      expect(isUpdatedInLastMonth('invalid-date', refDate)).toBe(false);
+      const currentDate = new Date('2026-09-27');
+      expect(isUpdatedInLast30Days(undefined, currentDate)).toBe(false);
+      expect(isUpdatedInLast30Days('', currentDate)).toBe(false);
+      expect(isUpdatedInLast30Days('invalid-date', currentDate)).toBe(false);
     });
 
-    it('gracefully uses current date when referenceDate is omitted', () => {
+    it('gracefully uses real current date when currentDate is omitted', () => {
       const now = new Date();
-      const thisMonthDate = `${now.getMonth() + 1}/15/${now.getFullYear()}`;
-      expect(isUpdatedInLastMonth(thisMonthDate)).toBe(true);
-      expect(isUpdatedInLastMonth('1/1/2000')).toBe(false);
+      const todayStr = `${now.getMonth() + 1}/${now.getDate()}/${now.getFullYear()}`;
+      expect(isUpdatedInLast30Days(todayStr)).toBe(true);
+      expect(isUpdatedInLast30Days('1/1/2000')).toBe(false);
     });
   });
 

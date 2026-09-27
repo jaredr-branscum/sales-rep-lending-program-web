@@ -4,10 +4,12 @@ import {
   parseLenderCSVWithReport,
   getDiscoveredDatasets,
   getLatestDataset,
+  getDatasetByFilename,
   DEFAULT_LENDER_PROGRAMS,
   DEFAULT_DATASET_NAME,
 } from '../csvParser';
 import { evaluatePrograms } from '../../domain/matchEngine';
+import { isUpdatedInLast30Days } from '../../components/LenderCard';
 import type { BorrowerInputs } from '../../types/lender';
 
 // Controlled test fixtures for verifying upload pipeline & zero-stale state guarantees
@@ -161,4 +163,72 @@ describe('Dataset Dynamic Discovery & Refresh Pipeline', () => {
       ).toBe(false);
     });
   });
+
+  describe('Rate Freshness & 30-Day Window Guarantees', () => {
+    const testCurrentDate = new Date('2026-09-27');
+
+    it('ensures older CSV uploads (2026-02, 2026-03, 2026-04) do NOT highlight stale programs with Rate Updated badge', () => {
+      const olderFilenames = [
+        'sample_lenders_2026-02.csv',
+        'sample_lenders_2026-03.csv',
+        'sample_lenders_2026-04.csv',
+      ];
+
+      olderFilenames.forEach((filename) => {
+        const dataset = getDatasetByFilename(filename);
+        expect(dataset, `Dataset ${filename} must exist`).toBeDefined();
+        if (!dataset) return;
+
+        const programs = parseLenderCSV(dataset.content);
+        expect(programs.length).toBeGreaterThan(0);
+
+        // Every entry in these older datasets is > 30 days older from current date
+        const recentCount = programs.filter((p) => isUpdatedInLast30Days(p.last_updated, testCurrentDate)).length;
+        expect(recentCount).toBe(0);
+      });
+    });
+
+    it('correctly flags programs updated 30 days or less from current date and leaves older entries unflagged', () => {
+      const augustDataset = getDatasetByFilename('sample_lenders_2026-08.csv');
+      expect(augustDataset).toBeDefined();
+      if (!augustDataset) return;
+
+      const programs = parseLenderCSV(augustDataset.content);
+      const recentUpdates = programs.filter((p) => isUpdatedInLast30Days(p.last_updated, testCurrentDate));
+      const staleEntries = programs.filter((p) => !isUpdatedInLast30Days(p.last_updated, testCurrentDate));
+
+      // There must be a blend of both recent and stale entries
+      expect(recentUpdates.length).toBeGreaterThan(0);
+      expect(staleEntries.length).toBeGreaterThan(0);
+
+      // Verify all recent updates are 30 days or less older from testCurrentDate
+      recentUpdates.forEach((p) => {
+        const d = new Date(p.last_updated);
+        const diffDays = (testCurrentDate.getTime() - d.getTime()) / (1000 * 60 * 60 * 24);
+        expect(diffDays).toBeGreaterThanOrEqual(0);
+        expect(diffDays).toBeLessThanOrEqual(30);
+      });
+
+      // Verify all stale entries are older than 30 days
+      staleEntries.forEach((p) => {
+        const d = new Date(p.last_updated);
+        const diffDays = (testCurrentDate.getTime() - d.getTime()) / (1000 * 60 * 60 * 24);
+        expect(diffDays).toBeGreaterThan(30);
+      });
+    });
+
+    it('flags entries for a newly uploaded CSV that are 30 days or less older from current date', () => {
+      const customCsv = `lender_name,program_type,min_loan_amount,max_loan_amount,min_credit_score,credit_tier_required,min_years_in_business,interest_rate_min,interest_rate_max,max_term_months,sba_guarantee_pct,eligible_business_types,requires_collateral,max_existing_debt_ratio,turnaround_days,special_requirements,last_updated
+Fresh Bank,7(a) Standard,100000,5000000,660,Good,2,8.5,10.5,120,75,All,Yes,0.50,30,,9/15/2026
+Stale Bank,SBA Express,25000,350000,680,Good,1,10.5,12.5,84,50,All,No,0.45,10,,7/1/2026`;
+
+      const customPrograms = parseLenderCSV(customCsv);
+
+      // Fresh Bank (9/15/2026) is 12 days older from 9/27/2026 -> flagged
+      expect(isUpdatedInLast30Days(customPrograms[0].last_updated, testCurrentDate)).toBe(true);
+      // Stale Bank (7/1/2026) is ~88 days older -> NOT flagged
+      expect(isUpdatedInLast30Days(customPrograms[1].last_updated, testCurrentDate)).toBe(false);
+    });
+  });
 });
+

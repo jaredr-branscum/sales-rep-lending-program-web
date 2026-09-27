@@ -1,6 +1,10 @@
 import React, { useState, useMemo, useRef } from 'react';
 import type { BorrowerInputs, LenderProgram, MatchResult } from './types/lender';
-import { DEFAULT_LENDER_PROGRAMS, DEFAULT_DATASET_NAME, parseLenderCSVWithReport } from './services/csvParser';
+import {
+  DEFAULT_LENDER_PROGRAMS,
+  DEFAULT_DATASET_NAME,
+  parseLenderCSVWithReport,
+} from './services/csvParser';
 import { evaluatePrograms } from './domain/matchEngine';
 import { TriageBar } from './components/TriageBar';
 import { LenderCard } from './components/LenderCard';
@@ -46,19 +50,6 @@ export const App: React.FC = () => {
     return evaluatePrograms(lenderPrograms, inputs);
   }, [lenderPrograms, inputs]);
 
-  // Dynamically calculate the latest update timestamp across the active dataset to discern recent rate updates
-  const latestDatasetDate = useMemo(() => {
-    let maxTime = 0;
-    for (const p of lenderPrograms) {
-      if (p.last_updated) {
-        const time = Date.parse(p.last_updated);
-        if (!Number.isNaN(time) && time > maxTime) {
-          maxTime = time;
-        }
-      }
-    }
-    return maxTime > 0 ? new Date(maxTime) : undefined;
-  }, [lenderPrograms]);
 
   // Aggregate Status Counts
   const counts = useMemo(() => {
@@ -419,7 +410,6 @@ export const App: React.FC = () => {
                   isSelected={isSelected}
                   onToggleSelect={toggleSelectProgram}
                   canSelectMore={selectedPrograms.length < 4}
-                  referenceDate={latestDatasetDate}
                 />
               );
             })}

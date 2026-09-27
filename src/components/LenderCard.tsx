@@ -20,7 +20,7 @@ interface LenderCardProps {
   isSelected: boolean;
   onToggleSelect: (program: LenderProgram) => void;
   canSelectMore: boolean;
-  referenceDate?: Date;
+  currentDate?: Date;
 }
 
 export function formatCurrencyAmount(amount: number): string {
@@ -36,36 +36,29 @@ export function formatCurrencyAmount(amount: number): string {
 }
 
 /**
- * Determines whether a lender program's rate was updated in the last monthly cycle
- * relative to the reference date (defaults to the dataset's latest date or current date).
- * Checks if the update date falls in the same calendar month/year or within 30 days.
+ * Determines whether a lender program's rate was updated 30 days or less
+ * from the current date.
  */
-export function isUpdatedInLastMonth(dateStr?: string, referenceDate?: Date): boolean {
+export function isUpdatedInLast30Days(dateStr?: string, currentDate: Date = new Date()): boolean {
   if (!dateStr) return false;
   const updateDate = new Date(dateStr);
   if (Number.isNaN(updateDate.getTime())) return false;
 
-  const ref = referenceDate && !Number.isNaN(referenceDate.getTime()) ? referenceDate : new Date();
-
-  // Same calendar month and year as the reference date
-  const isSameMonthAndYear =
-    updateDate.getFullYear() === ref.getFullYear() &&
-    updateDate.getMonth() === ref.getMonth();
-
-  // Or within a rolling 30-day window
-  const diffMs = ref.getTime() - updateDate.getTime();
+  const diffMs = currentDate.getTime() - updateDate.getTime();
   const diffDays = diffMs / (1000 * 60 * 60 * 24);
-  const isWithin30Days = diffDays >= 0 && diffDays <= 31;
 
-  return isSameMonthAndYear || isWithin30Days;
+  // 30 days or less from current date (with -1 day buffer for same-day local/UTC timezone offsets)
+  return diffDays >= -1 && diffDays <= 30;
 }
+
+export const isUpdatedInLastMonth = isUpdatedInLast30Days;
 
 export const LenderCard: React.FC<LenderCardProps> = ({
   result,
   isSelected,
   onToggleSelect,
   canSelectMore,
-  referenceDate,
+  currentDate,
 }) => {
   const { program, status, deltas } = result;
 
@@ -73,8 +66,8 @@ export const LenderCard: React.FC<LenderCardProps> = ({
   const isNearMiss = status === 'NEAR_MISS';
   const isIneligible = status === 'INELIGIBLE';
 
-  // Dynamically discern whether rates were updated in the active monthly cycle
-  const isRateUpdated = isUpdatedInLastMonth(program.last_updated, referenceDate);
+  // Flag entries with rates updated 30 days or less from the current date
+  const isRateUpdated = isUpdatedInLast30Days(program.last_updated, currentDate);
 
   const cardBorder = isSelected
     ? 'border-blue-600 ring-2 ring-blue-500/20 shadow-md'
