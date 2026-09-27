@@ -1,6 +1,6 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useRef } from 'react';
 import type { BorrowerInputs, LenderProgram, MatchResult } from './types/lender';
-import { DEFAULT_LENDER_PROGRAMS } from './services/csvParser';
+import { DEFAULT_LENDER_PROGRAMS, DEFAULT_DATASET_NAME, parseLenderCSVWithReport } from './services/csvParser';
 import { evaluatePrograms } from './domain/matchEngine';
 import { TriageBar } from './components/TriageBar';
 import { LenderCard } from './components/LenderCard';
@@ -12,6 +12,8 @@ import {
   CheckCircle2,
   AlertTriangle,
   RotateCcw,
+  Upload,
+  Check,
 } from 'lucide-react';
 
 type FilterTab = 'ALL' | 'QUALIFIED' | 'NEAR_MISS' | 'INELIGIBLE';
@@ -27,16 +29,22 @@ export const App: React.FC = () => {
     collateralAvailable: true,
   });
 
+  // Active Dataset (Default latest date-versioned or User Uploaded CSV)
+  const [lenderPrograms, setLenderPrograms] = useState<LenderProgram[]>(DEFAULT_LENDER_PROGRAMS);
+  const [activeDatasetName, setActiveDatasetName] = useState<string>(DEFAULT_DATASET_NAME);
+  const [uploadFeedback, setUploadFeedback] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   // UI Filter and Sort State
   const [activeTab, setActiveTab] = useState<FilterTab>('ALL');
   const [sortOption, setSortOption] = useState<SortOption>('TURNAROUND_ASC');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedPrograms, setSelectedPrograms] = useState<LenderProgram[]>([]);
 
-  // Real-time Match Calculation
+  // Real-time Match Calculation against active dataset
   const evaluatedResults = useMemo(() => {
-    return evaluatePrograms(DEFAULT_LENDER_PROGRAMS, inputs);
-  }, [inputs]);
+    return evaluatePrograms(lenderPrograms, inputs);
+  }, [lenderPrograms, inputs]);
 
   // Aggregate Status Counts
   const counts = useMemo(() => {
@@ -142,11 +150,53 @@ export const App: React.FC = () => {
     });
   };
 
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const content = event.target?.result;
+      if (typeof content !== 'string') return;
+
+      const report = parseLenderCSVWithReport(content);
+      if (report.programs.length > 0) {
+        setLenderPrograms(report.programs);
+        setActiveDatasetName(file.name);
+        setSelectedPrograms([]);
+        setUploadFeedback({
+          message: `Loaded ${report.programs.length} programs from "${file.name}"`,
+          type: 'success',
+        });
+        setTimeout(() => setUploadFeedback(null), 4000);
+      } else {
+        setUploadFeedback({
+          message: `Could not parse valid lender programs from "${file.name}". ${report.errors[0] || 'Check CSV column structure.'}`,
+          type: 'error',
+        });
+        setTimeout(() => setUploadFeedback(null), 6000);
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = '';
+  };
+
+  const handleResetDataset = () => {
+    setLenderPrograms(DEFAULT_LENDER_PROGRAMS);
+    setActiveDatasetName(DEFAULT_DATASET_NAME);
+    setSelectedPrograms([]);
+    setUploadFeedback({
+      message: `Reset to latest default dataset (${DEFAULT_DATASET_NAME}).`,
+      type: 'success',
+    });
+    setTimeout(() => setUploadFeedback(null), 3000);
+  };
+
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 pb-28 font-sans antialiased">
       {/* Top Application Header */}
       <header className="bg-slate-950 border-b border-slate-800 text-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 flex flex-col md:flex-row md:items-center justify-between gap-3">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center font-black text-white text-base tracking-wider shadow-inner">
               N
@@ -166,23 +216,75 @@ export const App: React.FC = () => {
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
+          {/* Upload Status Feedback Pill */}
+          {uploadFeedback && (
+            <div
+              className={`text-xs px-3 py-1 rounded-lg flex items-center gap-1.5 transition-all ${
+                uploadFeedback.type === 'success'
+                  ? 'bg-emerald-950/80 border border-emerald-700/80 text-emerald-300'
+                  : 'bg-rose-950/80 border border-rose-700/80 text-rose-300'
+              }`}
+            >
+              {uploadFeedback.type === 'success' ? (
+                <Check className="w-3.5 h-3.5 text-emerald-400" />
+              ) : (
+                <AlertTriangle className="w-3.5 h-3.5 text-rose-400" />
+              )}
+              <span className="font-medium">{uploadFeedback.message}</span>
+            </div>
+          )}
+
+          {/* Action Tools & Dataset Counter */}
+          <div className="flex items-center gap-3 self-end md:self-auto">
+            {/* Hidden CSV File Input */}
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".csv,text/csv"
+              onChange={handleFileUpload}
+              className="hidden"
+            />
+
+            {/* Upload Rate Sheet Button */}
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-blue-600 hover:bg-blue-500 text-white shadow-sm transition-all cursor-pointer"
+              title="Upload an updated monthly rate sheet CSV"
+            >
+              <Upload className="w-3.5 h-3.5" />
+              <span>Upload CSV</span>
+            </button>
+
+            {/* Reset to Default Dataset if custom loaded */}
+            {activeDatasetName !== DEFAULT_DATASET_NAME && (
+              <button
+                type="button"
+                onClick={handleResetDataset}
+                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs text-amber-300 hover:text-amber-100 hover:bg-slate-800 transition-colors cursor-pointer"
+                title="Reset to latest default dataset"
+              >
+                <span>Reset to Latest</span>
+              </button>
+            )}
+
             <button
               type="button"
               onClick={resetInputs}
-              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-xs text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
+              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs text-slate-400 hover:text-white hover:bg-slate-800 transition-colors"
               title="Reset intake to default parameters"
             >
               <RotateCcw className="w-3.5 h-3.5" />
               <span className="hidden sm:inline">Reset Form</span>
             </button>
-            <div className="text-right hidden sm:block">
-              <span className="text-xs font-semibold text-slate-300 block">
-                {DEFAULT_LENDER_PROGRAMS.length} Partner Programs
+
+            <div className="text-right hidden sm:block border-l border-slate-800 pl-3">
+              <span className="text-xs font-semibold text-slate-200 block truncate max-w-[170px]" title={activeDatasetName}>
+                {lenderPrograms.length} Programs ({activeDatasetName === DEFAULT_DATASET_NAME ? 'Latest' : 'Custom'})
               </span>
               <span className="text-[10px] text-emerald-400 flex items-center justify-end gap-1">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                Rates Current
+                Active Dataset
               </span>
             </div>
           </div>

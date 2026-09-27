@@ -1,7 +1,73 @@
 import type { LenderProgram, CollateralRequirement, CreditTier, ProgramType } from '../types/lender';
-import sampleLendersRaw from '../../sample_lenders.csv?raw';
+export interface DiscoveredDataset {
+  path: string;
+  filename: string;
+  dateKey: string;
+  content: string;
+}
 
-export const RAW_SAMPLE_LENDERS_CSV = sampleLendersRaw;
+/**
+ * Extracts a date string from a filename (e.g. 'sample_lenders_2026-03.csv' -> '2026-03').
+ */
+export function extractDateFromFilename(name: string): string {
+  const match = name.match(/\d{4}[-_]\d{2}(?:[-_]\d{2})?/);
+  return match ? match[0] : name;
+}
+
+/**
+ * Dynamically discovers all CSV files in the data directory via Vite's glob import
+ * and returns them sorted in descending chronological order (latest date first).
+ */
+export function getDiscoveredDatasets(): DiscoveredDataset[] {
+  // Discovers all CSV files in the data directory dynamically
+  const dataModules = import.meta.glob<string>('/data/*.csv', {
+    query: '?raw',
+    import: 'default',
+    eager: true,
+  });
+
+  const entries: DiscoveredDataset[] = [];
+
+  for (const [path, content] of Object.entries(dataModules)) {
+    const filename = path.split('/').pop() || path;
+    entries.push({
+      path,
+      filename,
+      dateKey: extractDateFromFilename(filename),
+      content: typeof content === 'string' ? content : '',
+    });
+  }
+
+  // Sort descending by dateKey, then filename (e.g. '2026-03' before '2026-01')
+  return entries.sort((a, b) => b.dateKey.localeCompare(a.dateKey));
+}
+
+export function getLatestDataset(): DiscoveredDataset {
+  const datasets = getDiscoveredDatasets();
+  return (
+    datasets[0] || {
+      path: '',
+      filename: 'default.csv',
+      dateKey: '',
+      content: '',
+    }
+  );
+}
+
+export const discoveredDatasets: DiscoveredDataset[] = getDiscoveredDatasets();
+export const latestDiscovered: DiscoveredDataset = getLatestDataset();
+
+export const LATEST_DATASET_NAME: string = latestDiscovered.filename;
+export const DEFAULT_DATASET_NAME: string = LATEST_DATASET_NAME;
+export const RAW_SAMPLE_LENDERS_CSV: string = latestDiscovered.content;
+
+export function getDatasetByDate(datePrefix: string): DiscoveredDataset | undefined {
+  return discoveredDatasets.find((d) => d.dateKey.includes(datePrefix));
+}
+
+export function getDatasetByFilename(filename: string): DiscoveredDataset | undefined {
+  return discoveredDatasets.find((d) => d.filename === filename);
+}
 
 export interface CSVParseReport {
   programs: LenderProgram[];

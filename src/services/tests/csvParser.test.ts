@@ -6,6 +6,7 @@ import {
   safeParseNullableNumeric,
   parseCSVLine,
   DEFAULT_LENDER_PROGRAMS,
+  getLatestDataset,
 } from '../csvParser';
 
 describe('csvParser - Error Handling & Boundary Cases', () => {
@@ -143,12 +144,13 @@ Good Bank 2,7(a),20000,200000,660`;
   });
 
   describe('Default sample data parsing parity', () => {
-    it('successfully loads all default programs from sample_lenders.csv', () => {
-      expect(DEFAULT_LENDER_PROGRAMS.length).toBe(49);
-      expect(DEFAULT_LENDER_PROGRAMS[0].lender_name).toBe('First National Bank');
-      expect(DEFAULT_LENDER_PROGRAMS[0].program_type).toBe('Community Advantage');
-      expect(DEFAULT_LENDER_PROGRAMS[0].min_loan_amount).toBe(10000);
-      expect(DEFAULT_LENDER_PROGRAMS[0].max_loan_amount).toBe(250000);
+    it('successfully loads and parses default programs from the latest discovered dataset', () => {
+      const latest = getLatestDataset();
+      const expectedPrograms = parseLenderCSV(latest.content);
+      expect(DEFAULT_LENDER_PROGRAMS).toEqual(expectedPrograms);
+      expect(DEFAULT_LENDER_PROGRAMS.length).toBeGreaterThan(0);
+      expect(DEFAULT_LENDER_PROGRAMS[0].lender_name.trim().length).toBeGreaterThan(0);
+      expect(DEFAULT_LENDER_PROGRAMS[0].max_loan_amount).toBeGreaterThan(0);
     });
   });
 });

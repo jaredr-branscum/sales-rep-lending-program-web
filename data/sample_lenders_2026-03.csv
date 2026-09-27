@@ -1,0 +1,17 @@
+lender_name,program_type,min_loan_amount,max_loan_amount,min_credit_score,credit_tier_required,min_years_in_business,interest_rate_min,interest_rate_max,max_term_months,sba_guarantee_pct,eligible_business_types,requires_collateral,max_existing_debt_ratio,turnaround_days,special_requirements,last_updated
+Apex Horizon Bank,7(a) Standard,150000,5000000,670,Good,2,9.2,11.0,300,75,All,Yes,0.48,35,Must demonstrate positive cash flow,3/1/2026
+Apex Horizon Bank,SBA Express,25000,500000,650,Good,1,10.8,12.2,84,50,Healthcare,No,0.45,8,,3/5/2026
+Beacon Point Credit Union,Community Advantage,15000,300000,610,Fair,1,10.5,12.5,120,85,Retail,No,0.42,21,,3/10/2026
+Beacon Point Credit Union,7(a) Small Loan,35000,350000,650,Good,1,9.8,11.4,120,85,Construction,Varies,0.5,18,Requires 10% owner injection,3/8/2026
+Catalyst SBA Capital,504 Loan,200000,5500000,690,Good,2,6.1,7.2,240,40,Manufacturing,Yes,0.52,60,Owner must have 20%+ equity stake,3/12/2026
+Catalyst SBA Capital,7(a) Standard,100000,3500000,660,Good,3,9.5,11.2,180,85,Professional Services,Varies,,40,,3/15/2026
+Delta Commercial Finance,SBA Express,20000,500000,660,Good,2,11.0,12.8,120,50,All,No,0.45,7,,3/2/2026
+Delta Commercial Finance,7(a) Small Loan,50000,250000,640,Good,1,10.2,11.9,84,85,Restaurant/Food Service,No,0.55,14,No recent bankruptcies (7 years),3/9/2026
+Elevate Business Bank,Community Advantage,10000,250000,600,Fair,1,11.2,13.0,84,85,All,Varies,0.4,28,Requires business plan for startups,3/14/2026
+Elevate Business Bank,504 Loan,250000,5000000,680,Good,2,5.8,6.9,300,40,Healthcare,Yes,0.45,55,,3/11/2026
+Foundry Lending Partners,7(a) Small Loan,30000,350000,670,Good,2,9.4,10.9,120,85,Professional Services,Varies,0.5,16,Franchise must be SBA-approved,3/4/2026
+Foundry Lending Partners,SBA Express,25000,500000,640,Good,1,11.5,13.1,84,50,Construction,No,,11,,3/7/2026
+Glacier Financial,504 Loan,150000,5000000,700,Good,3,6.0,7.1,300,40,All,Yes,0.42,48,Real estate purchase only,3/16/2026
+Glacier Financial,7(a) Standard,200000,4000000,680,Good,2,8.9,10.4,240,75,Manufacturing,Yes,0.48,45,,3/18/2026
+Highland Trust Bank,Community Advantage,20000,350000,630,Fair,1,10.8,12.6,120,85,Restaurant/Food Service,No,0.45,32,Must be in business at least 6 months before applying,3/13/2026
+Highland Trust Bank,SBA Express,10000,350000,650,Good,2,10.5,12.0,120,50,All,Varies,0.5,9,,3/6/2026

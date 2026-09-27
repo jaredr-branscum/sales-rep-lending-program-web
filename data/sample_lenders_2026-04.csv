@@ -1,0 +1,50 @@
+lender_name,program_type,min_loan_amount,max_loan_amount,min_credit_score,credit_tier_required,min_years_in_business,interest_rate_min,interest_rate_max,max_term_months,sba_guarantee_pct,eligible_business_types,requires_collateral,max_existing_debt_ratio,turnaround_days,special_requirements,last_updated
+First National Bank,Community Advantage,10000,250000,620,Fair,1,10.75,13.35,84,85,All,Varies,0.5,23,No recent bankruptcies (7 years),4/16/2026
+First National Bank,SBA Express,25000,350000,680,Good,2,11.15,12.25,84,50,All,No,0.45,13,Requires 10% owner injection,4/2/2026
+First National Bank,504 Loan,250000,5000000,680,Good,2,6.75,7.45,240,40,Manufacturing,Yes,0.5,73,No recent bankruptcies (7 years),4/23/2026
+First National Bank,7(a) Small Loan,30000,250000,640,Good,1,10.35,12.35,120,85,Restaurant/Food Service,No,0.55,20,,4/31/2026
+Pacific Commerce Bank,Community Advantage,10000,250000,620,Fair,1,10.85,12.55,120,85,Manufacturing,Varies,0.4,42,Must be in business at least 6 months before applying,4/12/2026
+Pacific Commerce Bank,7(a) Standard,150000,5000000,660,Good,3,9.65,11.35,300,75,Professional Services,Varies,0.55,51,Requires 10% owner injection,4/28/2026
+Pacific Commerce Bank,7(a) Small Loan,50000,350000,640,Good,1,10.85,11.95,120,85,Construction,No,,19,Franchise must be SBA-approved,4/27/2026
+Heritage Credit Union,7(a) Standard,50000,5000000,660,Good,3,8.75,10.45,120,85,Restaurant/Food Service,Yes,,57,Must be in business at least 6 months before applying,4/23/2026
+Heritage Credit Union,7(a) Small Loan,30000,250000,680,Good,1,8.95,10.55,120,85,Retail,Varies,0.45,19,Franchise must be SBA-approved,4/3/2026
+Heritage Credit Union,SBA Express,10000,500000,650,Good,2,10.05,11.15,84,50,All,No,0.45,10,,4/23/2026
+Heritage Credit Union,504 Loan,125000,5000000,700,Good,3,6.05,7.45,300,40,Retail,Yes,0.4,52,,4/3/2026
+Summit Lending Group,504 Loan,250000,5500000,680,Good,3,5.75,7.25,300,40,All,Yes,,61,Must demonstrate positive cash flow,4/14/2026
+Summit Lending Group,Community Advantage,10000,350000,620,Fair,1,10.15,11.85,84,85,Manufacturing,No,0.5,30,Real estate purchase only,4/7/2026
+Summit Lending Group,SBA Express,10000,500000,650,Good,2,12.05,13.65,84,50,Manufacturing,No,0.45,6,,4/27/2026
+Summit Lending Group,7(a) Standard,150000,3000000,660,Good,2,9.55,11.45,180,75,Restaurant/Food Service,Varies,,46,Must be in business at least 6 months before applying,4/4/2026
+Coastal Capital,7(a) Standard,50000,2000000,660,Good,2,10.05,11.25,120,85,All,Yes,,53,,4/25/2026
+Coastal Capital,Community Advantage,10000,350000,620,Fair,2,12.15,13.65,120,85,Restaurant/Food Service,No,0.5,45,Must be in business at least 6 months before applying,4/3/2026
+Coastal Capital,7(a) Small Loan,50000,250000,640,Good,1,11.25,12.65,120,85,Restaurant/Food Service,No,0.4,15,,4/29/2026
+Coastal Capital,504 Loan,250000,5500000,700,Good,2,6.15,7.55,240,40,All,Yes,0.4,68,Owner-occupied real estate only,4/15/2026
+Midwest Business Finance,SBA Express,25000,500000,650,Good,2,9.35,11.15,120,50,Construction,Varies,,14,Requires 10% owner injection,4/22/2026
+Midwest Business Finance,504 Loan,125000,5000000,680,Good,2,5.25,6.45,240,40,All,Yes,0.45,82,Owner must have 20%+ equity stake,4/2/2026
+Liberty SBA Lending,SBA Express,25000,500000,650,Good,1,11.25,12.65,120,50,All,No,,10,Requires 10% owner injection,4/20/2026
+Liberty SBA Lending,7(a) Small Loan,50000,250000,660,Good,1,10.45,12.35,120,85,Construction,Varies,0.5,24,Owner must have 20%+ equity stake,4/6/2026
+Pinnacle Funding Corp,7(a) Standard,100000,2000000,700,Good,2,8.95,10.25,120,75,Construction,Yes,0.55,50,No recent bankruptcies (7 years),4/15/2026
+Pinnacle Funding Corp,7(a) Small Loan,50000,350000,660,Good,1,10.25,11.95,120,85,Construction,No,0.55,26,,4/25/2026
+Evergreen Business Capital,504 Loan,125000,5000000,680,Good,2,5.65,6.55,300,40,All,Yes,0.55,58,Cannot be used for refinancing,4/5/2026
+Evergreen Business Capital,7(a) Small Loan,25000,350000,680,Good,1,9.65,11.25,84,85,Construction,No,0.45,15,Franchise must be SBA-approved,4/15/2026
+Evergreen Business Capital,Community Advantage,10000,250000,600,Fair,1,12.05,13.75,84,85,Restaurant/Food Service,Varies,0.45,41,Must be in business at least 6 months before applying,4/17/2026
+Evergreen Business Capital,7(a) Standard,150000,2000000,700,Good,3,9.35,10.45,180,75,All,Varies,0.45,39,Must demonstrate positive cash flow,4/1/2026
+Atlas Financial Services,504 Loan,125000,5500000,680,Good,3,7.05,7.75,300,40,Professional Services,Yes,0.55,65,Must demonstrate positive cash flow,4/3/2026
+Atlas Financial Services,SBA Express,10000,350000,680,Good,2,9.95,11.65,84,50,Healthcare,Varies,0.55,7,,4/25/2026
+Keystone Community Bank,7(a) Small Loan,25000,350000,680,Good,1,10.65,12.65,120,85,Restaurant/Food Service,Varies,0.45,17,,4/14/2026
+Keystone Community Bank,7(a) Standard,150000,3000000,680,Good,2,8.35,10.45,300,75,All,Varies,0.5,48,,4/27/2026
+Keystone Community Bank,Community Advantage,25000,250000,640,Fair,2,9.75,12.65,120,85,Construction,No,0.4,23,Requires business plan for startups,4/6/2026
+Keystone Community Bank,SBA Express,25000,500000,650,Good,2,10.35,12.15,120,50,Manufacturing,No,0.4,12,Franchise must be SBA-approved,4/22/2026
+BlueRidge Lending Partners,7(a) Standard,100000,2000000,660,Good,3,9.75,12.25,120,75,All,Yes,0.45,55,,4/2/2026
+BlueRidge Lending Partners,SBA Express,25000,500000,650,Good,2,11.45,12.95,120,50,All,No,,5,Owner must have 20%+ equity stake,4/29/2026
+Gateway Commercial Finance,7(a) Standard,50000,5000000,700,Good,2,8.25,9.75,300,85,Healthcare,Yes,0.5,57,,4/16/2026
+Gateway Commercial Finance,7(a) Small Loan,30000,250000,680,Good,1,9.35,10.35,84,85,All,Varies,,25,Real estate purchase only,4/24/2026
+Gateway Commercial Finance,SBA Express,10000,500000,650,Good,2,11.45,13.15,120,50,All,Varies,0.55,10,Owner-occupied real estate only,4/25/2026
+Gateway Commercial Finance,504 Loan,125000,5000000,700,Good,3,6.25,7.35,300,40,All,Yes,0.4,48,,4/28/2026
+Sterling Business Lending,SBA Express,25000,500000,650,Good,1,11.85,13.15,84,50,All,Varies,0.45,12,Must demonstrate positive cash flow,4/8/2026
+Sterling Business Lending,7(a) Small Loan,50000,250000,660,Good,2,9.15,10.75,84,85,All,No,0.55,23,Requires 10% owner injection,4/25/2026
+Sterling Business Lending,Community Advantage,10000,350000,620,Fair,1,11.25,14.25,84,85,Construction,No,0.4,43,Requires business plan for startups,4/19/2026
+Sterling Business Lending,7(a) Standard,50000,2000000,700,Good,2,9.85,11.65,120,75,Healthcare,Varies,0.5,57,Must be in business at least 6 months before applying,4/19/2026
+Frontier Capital Group,7(a) Standard,150000,2000000,680,Good,3,8.25,9.35,120,85,Professional Services,Yes,0.4,45,Owner-occupied real estate only,4/1/2026
+Frontier Capital Group,7(a) Small Loan,50000,250000,660,Good,1,9.25,11.15,84,85,All,Varies,0.5,21,,4/19/2026
+Frontier Capital Group,SBA Express,25000,500000,650,Good,2,9.85,11.55,120,50,Restaurant/Food Service,Varies,0.45,14,Cannot be used for refinancing,4/1/2026
+Frontier Capital Group,504 Loan,250000,5000000,680,Good,2,5.75,7.25,240,40,Healthcare,Yes,0.55,49,,4/26/2026
