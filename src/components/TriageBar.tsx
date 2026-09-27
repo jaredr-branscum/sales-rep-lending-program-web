@@ -79,7 +79,7 @@ export const TriageBar: React.FC<TriageBarProps> = ({
             {/* 2. Years In Business */}
             <div className="bg-slate-800/90 border border-slate-700/80 rounded-lg px-3 py-1.5 focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-transparent transition-all">
               <label htmlFor="triage-years-in-biz" className="block text-[10px] font-semibold uppercase tracking-wider text-slate-400">
-                Years in Biz
+                Years in Business
               </label>
               <div className="flex items-center gap-1.5 mt-0.5">
                 <Calendar className="w-3.5 h-3.5 text-blue-400 shrink-0" />

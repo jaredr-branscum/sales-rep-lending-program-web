@@ -225,7 +225,7 @@ export const App: React.FC = () => {
                 </span>
               </div>
               <p className="text-[11px] text-slate-400">
-                SBA Lender Matching & Real-Time Deal Triage
+                SBA Lender Matching
               </p>
             </div>
           </div>
