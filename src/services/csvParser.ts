@@ -1,78 +1,68 @@
 import type { LenderProgram, CollateralRequirement, CreditTier, ProgramType } from '../types/lender';
+import sampleLendersRaw from '../../sample_lenders.csv?raw';
 
-export const RAW_SAMPLE_LENDERS_CSV = `lender_name,program_type,min_loan_amount,max_loan_amount,min_credit_score,credit_tier_required,min_years_in_business,interest_rate_min,interest_rate_max,max_term_months,sba_guarantee_pct,eligible_business_types,requires_collateral,max_existing_debt_ratio,turnaround_days,special_requirements,last_updated
-First National Bank,Community Advantage,10000,250000,620,Fair,1,11,13.6,84,85,All,Varies,0.5,23,No recent bankruptcies (7 years),1/16/2026
-First National Bank,SBA Express,25000,350000,680,Good,2,11.4,12.5,84,50,All,No,0.45,13,Requires 10% owner injection,1/2/2026
-First National Bank,504 Loan,250000,5000000,680,Good,2,7,7.7,240,40,Manufacturing,Yes,0.5,73,No recent bankruptcies (7 years),1/23/2026
-First National Bank,7(a) Small Loan,30000,250000,640,Good,1,10.6,12.6,120,85,Restaurant/Food Service,No,0.55,20,,1/31/2026
-Pacific Commerce Bank,Community Advantage,10000,250000,620,Fair,1,11.1,12.8,120,85,Manufacturing,Varies,0.4,42,Must be in business at least 6 months before applying,1/12/2026
-Pacific Commerce Bank,7(a) Standard,150000,5000000,660,Good,3,9.9,11.6,300,75,Professional Services,Varies,0.55,51,Requires 10% owner injection,1/28/2026
-Pacific Commerce Bank,7(a) Small Loan,50000,350000,640,Good,1,11.1,12.2,120,85,Construction,No,,19,Franchise must be SBA-approved,1/27/2026
-Heritage Credit Union,7(a) Standard,50000,5000000,660,Good,3,9,10.7,120,85,Restaurant/Food Service,Yes,,57,Must be in business at least 6 months before applying,1/23/2026
-Heritage Credit Union,7(a) Small Loan,30000,250000,680,Good,1,9.2,10.8,120,85,Retail,Varies,0.45,19,Franchise must be SBA-approved,2/3/2026
-Heritage Credit Union,SBA Express,10000,500000,650,Good,2,10.3,11.4,84,50,All,No,0.45,10,,1/23/2026
-Heritage Credit Union,504 Loan,125000,5000000,700,Good,3,6.3,7.7,300,40,Retail,Yes,0.4,52,,2/3/2026
-Summit Lending Group,504 Loan,250000,5500000,680,Good,3,6,7.5,300,40,All,Yes,,61,Must demonstrate positive cash flow,1/14/2026
-Summit Lending Group,Community Advantage,10000,350000,620,Fair,1,10.4,12.1,84,85,Manufacturing,No,0.5,30,Real estate purchase only,2/7/2026
-Summit Lending Group,SBA Express,10000,500000,650,Good,2,12.3,13.9,84,50,Manufacturing,No,0.45,6,,1/27/2026
-Summit Lending Group,7(a) Standard,150000,3000000,660,Good,2,9.8,11.7,180,75,Restaurant/Food Service,Varies,,46,Must be in business at least 6 months before applying,2/4/2026
-Coastal Capital,7(a) Standard,50000,2000000,660,Good,2,10.3,11.5,120,85,All,Yes,,53,,1/25/2026
-Coastal Capital,Community Advantage,10000,350000,620,Fair,2,12.4,13.9,120,85,Restaurant/Food Service,No,0.5,45,Must be in business at least 6 months before applying,1/3/2026
-Coastal Capital,7(a) Small Loan,50000,250000,640,Good,1,11.5,12.9,120,85,Restaurant/Food Service,No,0.4,15,,1/29/2026
-Coastal Capital,504 Loan,250000,5500000,700,Good,2,6.4,7.8,240,40,All,Yes,0.4,68,Owner-occupied real estate only,1/15/2026
-Midwest Business Finance,SBA Express,25000,500000,650,Good,2,9.6,11.4,120,50,Construction,Varies,,14,Requires 10% owner injection,1/22/2026
-Midwest Business Finance,504 Loan,125000,5000000,680,Good,2,5.5,6.7,240,40,All,Yes,0.45,82,Owner must have 20%+ equity stake,2/2/2026
-Liberty SBA Lending,SBA Express,25000,500000,650,Good,1,11.5,12.9,120,50,All,No,,10,Requires 10% owner injection,1/20/2026
-Liberty SBA Lending,7(a) Small Loan,50000,250000,660,Good,1,10.7,12.6,120,85,Construction,Varies,0.5,24,Owner must have 20%+ equity stake,1/6/2026
-Pinnacle Funding Corp,7(a) Standard,100000,2000000,700,Good,2,9.2,10.5,120,75,Construction,Yes,0.55,50,No recent bankruptcies (7 years),1/15/2026
-Pinnacle Funding Corp,7(a) Small Loan,50000,350000,660,Good,1,10.5,12.2,120,85,Construction,No,0.55,26,,1/25/2026
-Evergreen Business Capital,504 Loan,125000,5000000,680,Good,2,5.9,6.8,300,40,All,Yes,0.55,58,Cannot be used for refinancing,1/5/2026
-Evergreen Business Capital,7(a) Small Loan,25000,350000,680,Good,1,9.9,11.5,84,85,Construction,No,0.45,15,Franchise must be SBA-approved,1/15/2026
-Evergreen Business Capital,Community Advantage,10000,250000,600,Fair,1,12.3,14,84,85,Restaurant/Food Service,Varies,0.45,41,Must be in business at least 6 months before applying,1/17/2026
-Evergreen Business Capital,7(a) Standard,150000,2000000,700,Good,3,9.6,10.7,180,75,All,Varies,0.45,39,Must demonstrate positive cash flow,1/1/2026
-Atlas Financial Services,504 Loan,125000,5500000,680,Good,3,7.3,8,300,40,Professional Services,Yes,0.55,65,Must demonstrate positive cash flow,1/3/2026
-Atlas Financial Services,SBA Express,10000,350000,680,Good,2,10.2,11.9,84,50,Healthcare,Varies,0.55,7,,1/25/2026
-Keystone Community Bank,7(a) Small Loan,25000,350000,680,Good,1,10.9,12.9,120,85,Restaurant/Food Service,Varies,0.45,17,,1/14/2026
-Keystone Community Bank,7(a) Standard,150000,3000000,680,Good,2,8.6,10.7,300,75,All,Varies,0.5,48,,1/27/2026
-Keystone Community Bank,Community Advantage,25000,250000,640,Fair,2,10,12.9,120,85,Construction,No,0.4,23,Requires business plan for startups,2/6/2026
-Keystone Community Bank,SBA Express,25000,500000,650,Good,2,10.6,12.4,120,50,Manufacturing,No,0.4,12,Franchise must be SBA-approved,1/22/2026
-BlueRidge Lending Partners,7(a) Standard,100000,2000000,660,Good,3,10,12.5,120,75,All,Yes,0.45,55,,1/2/2026
-BlueRidge Lending Partners,SBA Express,25000,500000,650,Good,2,11.7,13.2,120,50,All,No,,5,Owner must have 20%+ equity stake,1/29/2026
-Gateway Commercial Finance,7(a) Standard,50000,5000000,700,Good,2,8.5,10,300,85,Healthcare,Yes,0.5,57,,1/16/2026
-Gateway Commercial Finance,7(a) Small Loan,30000,250000,680,Good,1,9.6,10.6,84,85,All,Varies,,25,Real estate purchase only,1/24/2026
-Gateway Commercial Finance,SBA Express,10000,500000,650,Good,2,11.7,13.4,120,50,All,Varies,0.55,10,Owner-occupied real estate only,1/25/2026
-Gateway Commercial Finance,504 Loan,125000,5000000,700,Good,3,6.5,7.6,300,40,All,Yes,0.4,48,,1/28/2026
-Sterling Business Lending,SBA Express,25000,500000,650,Good,1,12.1,13.4,84,50,All,Varies,0.45,12,Must demonstrate positive cash flow,2/8/2026
-Sterling Business Lending,7(a) Small Loan,50000,250000,660,Good,2,9.4,11,84,85,All,No,0.55,23,Requires 10% owner injection,1/25/2026
-Sterling Business Lending,Community Advantage,10000,350000,620,Fair,1,11.5,14.5,84,85,Construction,No,0.4,43,Requires business plan for startups,1/19/2026
-Sterling Business Lending,7(a) Standard,50000,2000000,700,Good,2,10.1,11.9,120,75,Healthcare,Varies,0.5,57,Must be in business at least 6 months before applying,1/19/2026
-Frontier Capital Group,7(a) Standard,150000,2000000,680,Good,3,8.5,9.6,120,85,Professional Services,Yes,0.4,45,Owner-occupied real estate only,1/1/2026
-Frontier Capital Group,7(a) Small Loan,50000,250000,660,Good,1,9.5,11.4,84,85,All,Varies,0.5,21,,1/19/2026
-Frontier Capital Group,SBA Express,25000,500000,650,Good,2,10.1,11.8,120,50,Restaurant/Food Service,Varies,0.45,14,Cannot be used for refinancing,1/1/2026
-Frontier Capital Group,504 Loan,250000,5000000,680,Good,2,6,7.5,240,40,Healthcare,Yes,0.55,49,,1/26/2026`;
+export const RAW_SAMPLE_LENDERS_CSV = sampleLendersRaw;
 
-function parseNumeric(val: string | undefined): number {
-  if (!val) return 0;
-  const cleaned = val.replace(/[\$,%]/g, '').trim();
-  const num = Number(cleaned);
-  return Number.isNaN(num) ? 0 : num;
+export interface CSVParseReport {
+  programs: LenderProgram[];
+  errors: string[];
+  warnings: string[];
 }
 
-function parseNullableNumeric(val: string | undefined): number | null {
-  if (!val || val.trim() === '') return null;
+/**
+ * Safely parse a numeric value, stripping currency symbols, commas, and percentage signs.
+ * Falls back to defaultValue if invalid, NaN, or non-finite.
+ */
+export function safeParseNumeric(val: unknown, defaultValue = 0): number {
+  if (typeof val === 'number') {
+    return Number.isFinite(val) ? val : defaultValue;
+  }
+  if (!val || typeof val !== 'string') return defaultValue;
+
   const cleaned = val.replace(/[\$,%]/g, '').trim();
+  if (!cleaned) return defaultValue;
+
   const num = Number(cleaned);
-  return Number.isNaN(num) ? null : num;
+  return Number.isFinite(num) ? num : defaultValue;
 }
 
-function parseCSVLine(line: string): string[] {
+/**
+ * Safely parse an optional numeric value (e.g. max debt ratio).
+ * Returns null if blank, omitted, or unparseable.
+ */
+export function safeParseNullableNumeric(val: unknown): number | null {
+  if (val === null || val === undefined) return null;
+  if (typeof val === 'number') {
+    return Number.isFinite(val) ? val : null;
+  }
+  if (typeof val !== 'string') return null;
+
+  const cleaned = val.replace(/[\$,%]/g, '').trim();
+  if (!cleaned) return null;
+
+  const num = Number(cleaned);
+  return Number.isFinite(num) ? num : null;
+}
+
+/**
+ * Robust CSV line tokenizer handling quoted strings, escaped quotes, and commas.
+ */
+export function parseCSVLine(line: string): string[] {
+  if (!line) return [];
   const result: string[] = [];
   let current = '';
   let inQuotes = false;
+
   for (let i = 0; i < line.length; i++) {
     const char = line[i];
     if (char === '"') {
-      inQuotes = !inQuotes;
+      if (inQuotes && line[i + 1] === '"') {
+        // Escaped quote: "" -> "
+        current += '"';
+        i++;
+      } else {
+        inQuotes = !inQuotes;
+      }
     } else if (char === ',' && !inQuotes) {
       result.push(current.trim());
       current = '';
@@ -80,44 +70,207 @@ function parseCSVLine(line: string): string[] {
       current += char;
     }
   }
+
+  // Push final cell
   result.push(current.trim());
   return result;
 }
 
-export function parseLenderCSV(csvText: string): LenderProgram[] {
-  const lines = csvText.split(/\r?\n/).filter((l) => l.trim().length > 0);
-  if (lines.length < 2) return [];
+/**
+ * Normalizes collateral requirement strings to strict 'Yes' | 'No' | 'Varies'
+ */
+function normalizeCollateral(val: string | undefined): CollateralRequirement {
+  const normalized = (val || '').trim().toLowerCase();
+  if (normalized === 'yes' || normalized === 'true' || normalized === 'required') {
+    return 'Yes';
+  }
+  if (normalized === 'no' || normalized === 'false' || normalized === 'none') {
+    return 'No';
+  }
+  return 'Varies';
+}
 
-  const programs: LenderProgram[] = [];
+/**
+ * Normalizes credit tier strings to 'Fair' | 'Good' | 'Excellent'
+ */
+function normalizeCreditTier(val: string | undefined): CreditTier {
+  const normalized = (val || '').trim().toLowerCase();
+  if (normalized.includes('exc')) return 'Excellent';
+  if (normalized.includes('fair')) return 'Fair';
+  return 'Good';
+}
 
-  for (let i = 1; i < lines.length; i++) {
-    const cols = parseCSVLine(lines[i]);
-    if (cols.length < 16) continue;
+/**
+ * Header column aliases for dynamic column mapping
+ */
+const COLUMN_ALIASES: Record<string, string[]> = {
+  lender_name: ['lender_name', 'lender', 'bank', 'institution'],
+  program_type: ['program_type', 'program', 'loan_program', 'type'],
+  min_loan_amount: ['min_loan_amount', 'min_loan', 'minimum_loan'],
+  max_loan_amount: ['max_loan_amount', 'max_loan', 'maximum_loan'],
+  min_credit_score: ['min_credit_score', 'min_credit', 'credit_score'],
+  credit_tier_required: ['credit_tier_required', 'credit_tier', 'tier'],
+  min_years_in_business: ['min_years_in_business', 'years_in_business', 'min_years'],
+  interest_rate_min: ['interest_rate_min', 'min_rate', 'rate_min'],
+  interest_rate_max: ['interest_rate_max', 'max_rate', 'rate_max'],
+  max_term_months: ['max_term_months', 'term_months', 'max_term'],
+  sba_guarantee_pct: ['sba_guarantee_pct', 'guarantee_pct', 'guarantee'],
+  eligible_business_types: ['eligible_business_types', 'eligible_industries', 'industries', 'business_type'],
+  requires_collateral: ['requires_collateral', 'collateral', 'collateral_required'],
+  max_existing_debt_ratio: ['max_existing_debt_ratio', 'debt_ratio', 'dscr'],
+  turnaround_days: ['turnaround_days', 'turnaround', 'speed_days', 'days'],
+  special_requirements: ['special_requirements', 'requirements', 'notes'],
+  last_updated: ['last_updated', 'updated', 'date'],
+};
 
-    const lenderName = cols[0];
-    if (!lenderName) continue;
+function resolveColumnIndices(headers: string[]): Record<string, number> {
+  const map: Record<string, number> = {};
+  const cleanedHeaders = headers.map((h) => h.toLowerCase().trim().replace(/[^a-z0-9_]/g, '_'));
 
-    programs.push({
-      lender_name: lenderName,
-      program_type: cols[1] as ProgramType,
-      min_loan_amount: parseNumeric(cols[2]),
-      max_loan_amount: parseNumeric(cols[3]),
-      min_credit_score: parseNumeric(cols[4]),
-      credit_tier_required: (cols[5] as CreditTier) || 'Fair',
-      min_years_in_business: parseNumeric(cols[6]),
-      interest_rate_min: parseNumeric(cols[7]),
-      interest_rate_max: parseNumeric(cols[8]),
-      max_term_months: parseNumeric(cols[9]),
-      sba_guarantee_pct: parseNumeric(cols[10]),
-      eligible_business_types: cols[11] || 'All',
-      requires_collateral: (cols[12] as CollateralRequirement) || 'Varies',
-      max_existing_debt_ratio: parseNullableNumeric(cols[13]),
-      turnaround_days: parseNumeric(cols[14]),
-      special_requirements: cols[15] || '',
-      last_updated: cols[16] || '',
-    });
+  for (const [key, aliases] of Object.entries(COLUMN_ALIASES)) {
+    for (const alias of aliases) {
+      const idx = cleanedHeaders.indexOf(alias);
+      if (idx !== -1) {
+        map[key] = idx;
+        break;
+      }
+    }
   }
 
+  return map;
+}
+
+/**
+ * Parses raw CSV content with comprehensive error isolation, boundary checks, and reporting.
+ */
+export function parseLenderCSVWithReport(csvText: unknown): CSVParseReport {
+  const report: CSVParseReport = {
+    programs: [],
+    errors: [],
+    warnings: [],
+  };
+
+  if (!csvText || typeof csvText !== 'string') {
+    report.warnings.push('CSV input is null, undefined, or not a string. Returned empty programs array.');
+    return report;
+  }
+
+  const trimmed = csvText.trim();
+  if (!trimmed) {
+    report.warnings.push('CSV input is empty.');
+    return report;
+  }
+
+  let lines: string[] = [];
+  try {
+    lines = trimmed.split(/\r?\n/).filter((l) => l.trim().length > 0);
+  } catch (err) {
+    report.errors.push(`Failed to split CSV lines: ${err instanceof Error ? err.message : String(err)}`);
+    return report;
+  }
+
+  if (lines.length < 2) {
+    report.warnings.push('CSV contains only a header or no data rows.');
+    return report;
+  }
+
+  const rawHeaders = parseCSVLine(lines[0]);
+  const colMap = resolveColumnIndices(rawHeaders);
+
+  // If header didn't map lender_name, fallback to default positional mapping
+  const usePositional = colMap.lender_name === undefined;
+  if (usePositional) {
+    report.warnings.push('Could not detect standard column headers; falling back to positional indices.');
+  }
+
+  const getCol = (cols: string[], key: string, positionalIdx: number): string | undefined => {
+    if (!usePositional && colMap[key] !== undefined) {
+      return cols[colMap[key]];
+    }
+    return cols[positionalIdx];
+  };
+
+  for (let i = 1; i < lines.length; i++) {
+    const lineNum = i + 1;
+    const lineStr = lines[i];
+
+    try {
+      const cols = parseCSVLine(lineStr);
+
+      // Boundary check: skip rows with fewer than 5 columns
+      if (cols.length < 5) {
+        report.warnings.push(`Row ${lineNum}: Skipped due to insufficient columns (${cols.length} cols).`);
+        continue;
+      }
+
+      const rawLenderName = getCol(cols, 'lender_name', 0);
+      const lenderName = (rawLenderName || '').trim();
+
+      // Boundary check: skip rows missing lender name
+      if (!lenderName) {
+        report.warnings.push(`Row ${lineNum}: Missing lender name. Row skipped.`);
+        continue;
+      }
+
+      // Safe numeric coercion
+      let minLoan = safeParseNumeric(getCol(cols, 'min_loan_amount', 2), 0);
+      let maxLoan = safeParseNumeric(getCol(cols, 'max_loan_amount', 3), 0);
+      if (minLoan > maxLoan && maxLoan > 0) {
+        report.warnings.push(`Row ${lineNum} (${lenderName}): min_loan ($${minLoan}) was greater than max_loan ($${maxLoan}). Values swapped.`);
+        const temp = minLoan;
+        minLoan = maxLoan;
+        maxLoan = temp;
+      }
+
+      let minRate = safeParseNumeric(getCol(cols, 'interest_rate_min', 7), 0);
+      let maxRate = safeParseNumeric(getCol(cols, 'interest_rate_max', 8), 0);
+      if (minRate > maxRate && maxRate > 0) {
+        report.warnings.push(`Row ${lineNum} (${lenderName}): interest_rate_min (${minRate}%) was greater than max (${maxRate}%). Values swapped.`);
+        const temp = minRate;
+        minRate = maxRate;
+        maxRate = temp;
+      }
+
+      const minCreditScore = Math.max(0, Math.min(850, safeParseNumeric(getCol(cols, 'min_credit_score', 4), 600)));
+      const minYears = Math.max(0, safeParseNumeric(getCol(cols, 'min_years_in_business', 6), 0));
+      const maxTerm = Math.max(0, safeParseNumeric(getCol(cols, 'max_term_months', 9), 120));
+      const sbaGuarantee = Math.max(0, Math.min(100, safeParseNumeric(getCol(cols, 'sba_guarantee_pct', 10), 75)));
+      const turnaroundDays = Math.max(1, safeParseNumeric(getCol(cols, 'turnaround_days', 14), 14));
+
+      const program: LenderProgram = {
+        lender_name: lenderName,
+        program_type: (getCol(cols, 'program_type', 1) || 'Standard SBA') as ProgramType,
+        min_loan_amount: minLoan,
+        max_loan_amount: maxLoan,
+        min_credit_score: minCreditScore,
+        credit_tier_required: normalizeCreditTier(getCol(cols, 'credit_tier_required', 5)),
+        min_years_in_business: minYears,
+        interest_rate_min: minRate,
+        interest_rate_max: maxRate,
+        max_term_months: maxTerm,
+        sba_guarantee_pct: sbaGuarantee,
+        eligible_business_types: (getCol(cols, 'eligible_business_types', 11) || 'All').trim() || 'All',
+        requires_collateral: normalizeCollateral(getCol(cols, 'requires_collateral', 12)),
+        max_existing_debt_ratio: safeParseNullableNumeric(getCol(cols, 'max_existing_debt_ratio', 13)),
+        turnaround_days: turnaroundDays,
+        special_requirements: (getCol(cols, 'special_requirements', 15) || '').trim(),
+        last_updated: (getCol(cols, 'last_updated', 16) || '').trim(),
+      };
+
+      report.programs.push(program);
+    } catch (rowErr) {
+      report.errors.push(`Row ${lineNum}: Unexpected error parsing row (${rowErr instanceof Error ? rowErr.message : String(rowErr)}). Row isolated.`);
+    }
+  }
+
+  return report;
+}
+
+/**
+ * Standard parse function returning LenderProgram[] with graceful error recovery.
+ */
+export function parseLenderCSV(csvText: unknown): LenderProgram[] {
+  const { programs } = parseLenderCSVWithReport(csvText);
   return programs;
 }
 
