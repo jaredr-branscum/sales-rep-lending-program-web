@@ -98,9 +98,49 @@ export const TriageBar: React.FC<TriageBarProps> = ({
 
             {/* 3. Credit Score */}
             <div className="bg-slate-800/90 border border-slate-700/80 rounded-lg px-3 py-1.5 focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-transparent transition-all">
-              <label htmlFor="triage-credit-score" className="block text-[10px] font-semibold uppercase tracking-wider text-slate-400">
-                Credit Score
-              </label>
+              <div className="flex items-center justify-between">
+                <label htmlFor="triage-credit-score" className="block text-[10px] font-semibold uppercase tracking-wider text-slate-400">
+                  Credit Score
+                </label>
+                <div className="flex items-center gap-1">
+                  <button
+                    type="button"
+                    onClick={() => onChange({ ...inputs, creditScore: 620 })}
+                    className={`text-[9px] px-1 py-0.2 rounded font-semibold transition-colors cursor-pointer ${
+                      inputs.creditScore >= 580 && inputs.creditScore < 660
+                        ? 'bg-amber-400/20 text-amber-300 border border-amber-400/40'
+                        : 'text-slate-400 hover:text-white'
+                    }`}
+                    title="Quick set Fair (620)"
+                  >
+                    Fair
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => onChange({ ...inputs, creditScore: 680 })}
+                    className={`text-[9px] px-1 py-0.2 rounded font-semibold transition-colors cursor-pointer ${
+                      inputs.creditScore >= 660 && inputs.creditScore < 720
+                        ? 'bg-blue-400/20 text-blue-300 border border-blue-400/40'
+                        : 'text-slate-400 hover:text-white'
+                    }`}
+                    title="Quick set Good (680)"
+                  >
+                    Good
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => onChange({ ...inputs, creditScore: 740 })}
+                    className={`text-[9px] px-1 py-0.2 rounded font-semibold transition-colors cursor-pointer ${
+                      inputs.creditScore >= 720
+                        ? 'bg-emerald-400/20 text-emerald-300 border border-emerald-400/40'
+                        : 'text-slate-400 hover:text-white'
+                    }`}
+                    title="Quick set Excellent (740)"
+                  >
+                    Exc
+                  </button>
+                </div>
+              </div>
               <div className="flex items-center gap-1.5 mt-0.5">
                 <Award className="w-3.5 h-3.5 text-blue-400 shrink-0" />
                 <input

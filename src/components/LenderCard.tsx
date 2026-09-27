@@ -12,6 +12,7 @@ import {
   Info,
   CheckSquare,
   Square,
+  TrendingUp,
 } from 'lucide-react';
 
 interface LenderCardProps {
@@ -19,6 +20,7 @@ interface LenderCardProps {
   isSelected: boolean;
   onToggleSelect: (program: LenderProgram) => void;
   canSelectMore: boolean;
+  referenceDate?: Date;
 }
 
 export function formatCurrencyAmount(amount: number): string {
@@ -33,17 +35,46 @@ export function formatCurrencyAmount(amount: number): string {
   return `$${amount.toLocaleString('en-US')}`;
 }
 
+/**
+ * Determines whether a lender program's rate was updated in the last monthly cycle
+ * relative to the reference date (defaults to the dataset's latest date or current date).
+ * Checks if the update date falls in the same calendar month/year or within 30 days.
+ */
+export function isUpdatedInLastMonth(dateStr?: string, referenceDate?: Date): boolean {
+  if (!dateStr) return false;
+  const updateDate = new Date(dateStr);
+  if (Number.isNaN(updateDate.getTime())) return false;
+
+  const ref = referenceDate && !Number.isNaN(referenceDate.getTime()) ? referenceDate : new Date();
+
+  // Same calendar month and year as the reference date
+  const isSameMonthAndYear =
+    updateDate.getFullYear() === ref.getFullYear() &&
+    updateDate.getMonth() === ref.getMonth();
+
+  // Or within a rolling 30-day window
+  const diffMs = ref.getTime() - updateDate.getTime();
+  const diffDays = diffMs / (1000 * 60 * 60 * 24);
+  const isWithin30Days = diffDays >= 0 && diffDays <= 31;
+
+  return isSameMonthAndYear || isWithin30Days;
+}
+
 export const LenderCard: React.FC<LenderCardProps> = ({
   result,
   isSelected,
   onToggleSelect,
   canSelectMore,
+  referenceDate,
 }) => {
   const { program, status, deltas } = result;
 
   const isQualified = status === 'QUALIFIED';
   const isNearMiss = status === 'NEAR_MISS';
   const isIneligible = status === 'INELIGIBLE';
+
+  // Dynamically discern whether rates were updated in the active monthly cycle
+  const isRateUpdated = isUpdatedInLastMonth(program.last_updated, referenceDate);
 
   const cardBorder = isSelected
     ? 'border-blue-600 ring-2 ring-blue-500/20 shadow-md'
@@ -102,10 +133,21 @@ export const LenderCard: React.FC<LenderCardProps> = ({
         {/* Core Metrics Grid */}
         <div className="grid grid-cols-2 gap-2.5 py-3 my-2 border-y border-slate-100 text-xs">
           <div className="bg-slate-50/90 border border-slate-100 p-2.5 rounded-lg flex flex-col justify-between min-h-[58px]">
-            <span className="text-[10px] uppercase font-semibold text-slate-400 flex items-center gap-1.5 tracking-wider">
-              <Percent className="w-3.5 h-3.5 text-blue-500 shrink-0" />
-              Rate Range
-            </span>
+            <div className="flex items-center justify-between gap-1">
+              <span className="text-[10px] uppercase font-semibold text-slate-400 flex items-center gap-1.5 tracking-wider">
+                <Percent className="w-3.5 h-3.5 text-blue-500 shrink-0" />
+                Rate Range
+              </span>
+              {isRateUpdated && (
+                <span
+                  className="inline-flex items-center gap-0.5 px-1.5 py-0.2 rounded text-[9px] font-bold bg-blue-100 text-blue-700 border border-blue-200"
+                  title={`Rates updated on ${program.last_updated}`}
+                >
+                  <TrendingUp className="w-2.5 h-2.5 text-blue-600" />
+                  Rate Updated
+                </span>
+              )}
+            </div>
             <div className="text-sm font-bold text-slate-900 mt-1 whitespace-nowrap">
               {program.interest_rate_min}% - {program.interest_rate_max}%
             </div>
@@ -230,8 +272,14 @@ export const LenderCard: React.FC<LenderCardProps> = ({
           <span>{isSelected ? 'Selected' : 'Select for Comparison'}</span>
         </label>
 
-        <span className="text-[10px] text-slate-400">
-          Updated {program.last_updated}
+        <span
+          className={`text-[10px] font-medium flex items-center gap-1 ${
+            isRateUpdated ? 'text-blue-600 font-semibold' : 'text-slate-400'
+          }`}
+          title={`Program sheet last updated on ${program.last_updated}`}
+        >
+          <Calendar className={`w-3 h-3 shrink-0 ${isRateUpdated ? 'text-blue-500' : 'text-slate-400'}`} />
+          <span>Updated {program.last_updated}</span>
         </span>
       </div>
     </div>
