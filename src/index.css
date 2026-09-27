@@ -1,0 +1,8 @@
+@import "tailwindcss";
+
+@theme {
+  --color-newity-navy: #0f172a;
+  --color-newity-blue: #1d4ed8;
+  --color-newity-accent: #2563eb;
+  --color-newity-slate: #f8fafc;
+}
