@@ -163,5 +163,34 @@ describe('matchEngine', () => {
 
       expect(results.map((r) => r.program.lender_name)).toEqual(['Fast Lender', 'Mid Lender', 'Slow Lender']);
     });
+
+    it('prioritizes programs without special requirements ahead of programs with special requirements', () => {
+      const progWithSpecial: LenderProgram = {
+        ...baseProgram,
+        lender_name: 'Special Conditions Bank',
+        turnaround_days: 5,
+        special_requirements: 'Requires 10% owner injection',
+      };
+      const progClean: LenderProgram = {
+        ...baseProgram,
+        lender_name: 'Standard Direct Bank',
+        turnaround_days: 12,
+        special_requirements: '',
+      };
+
+      const inputs: BorrowerInputs = {
+        loanAmount: 100000,
+        creditScore: 700,
+        yearsInBusiness: 3,
+        industry: 'Retail',
+        collateralAvailable: true,
+      };
+
+      const results = evaluatePrograms([progWithSpecial, progClean], inputs);
+
+      // Standard Direct Bank has no special requirements, so it is prioritized first
+      expect(results[0].program.lender_name).toBe('Standard Direct Bank');
+      expect(results[1].program.lender_name).toBe('Special Conditions Bank');
+    });
   });
 });

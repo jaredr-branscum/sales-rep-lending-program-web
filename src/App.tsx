@@ -80,6 +80,13 @@ export const App: React.FC = () => {
         if (rankDiff !== 0) return rankDiff;
       }
 
+      // Prioritize programs WITHOUT special requirements
+      const aHasSpecial = Boolean(a.program.special_requirements && a.program.special_requirements.trim().length > 0);
+      const bHasSpecial = Boolean(b.program.special_requirements && b.program.special_requirements.trim().length > 0);
+      if (aHasSpecial !== bHasSpecial) {
+        return aHasSpecial ? 1 : -1;
+      }
+
       switch (sortOption) {
         case 'TURNAROUND_ASC':
           return a.program.turnaround_days - b.program.turnaround_days;

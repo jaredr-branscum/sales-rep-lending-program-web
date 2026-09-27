@@ -39,7 +39,7 @@ export const LenderCard: React.FC<LenderCardProps> = ({
   onToggleSelect,
   canSelectMore,
 }) => {
-  const { program, status, fitScore, deltas } = result;
+  const { program, status, deltas } = result;
 
   const isQualified = status === 'QUALIFIED';
   const isNearMiss = status === 'NEAR_MISS';
@@ -81,13 +81,13 @@ export const LenderCard: React.FC<LenderCardProps> = ({
             {isQualified && (
               <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
                 <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                Qualified · {fitScore}%
+                Qualified
               </span>
             )}
             {isNearMiss && (
               <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800 border border-amber-300">
                 <AlertTriangle className="w-3.5 h-3.5 text-amber-600" />
-                Near-Miss · {fitScore}%
+                Near-Miss
               </span>
             )}
             {isIneligible && (

@@ -32,7 +32,7 @@ export const ComparisonDrawer: React.FC<ComparisonDrawerProps> = ({
       ? `$${borrowerInputs.loanAmount.toLocaleString()}`
       : 'your requested amount';
 
-    const header = `### SBA Lending Options for Your Business\n\nHi! Based on our call and your target loan of ${formattedLoan}, here is a side-by-side comparison of the top SBA lending programs suited for your profile:\n\n`;
+    const header = `### Lending Options for Your Business\n\nHi! Based on our call and your target loan of ${formattedLoan}, here is a side-by-side comparison of the top lending programs suited for your profile:\n\n`;
 
     const body = selectedPrograms
       .map((p, idx) => {

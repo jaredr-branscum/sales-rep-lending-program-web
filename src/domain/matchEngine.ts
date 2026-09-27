@@ -85,9 +85,11 @@ export function evaluateProgram(
 
   if (deltas.length === 0) {
     status = 'QUALIFIED';
-    // Base 95-100, granting small bonus for fast turnaround
-    const speedBonus = Math.max(0, 5 - Math.floor(program.turnaround_days / 15));
-    fitScore = Math.min(100, 95 + speedBonus);
+    // Base 95-100, granting bonus for no special requirements and fast turnaround
+    const hasSpecialReq = Boolean(program.special_requirements && program.special_requirements.trim().length > 0);
+    const speedBonus = Math.max(0, 3 - Math.floor(program.turnaround_days / 20));
+    const specialBonus = hasSpecialReq ? 0 : 2;
+    fitScore = Math.min(100, 95 + speedBonus + specialBonus);
   } else if (isNearMissEligible) {
     status = 'NEAR_MISS';
     // 60-80 based on distance of deltas
@@ -121,9 +123,9 @@ export function evaluatePrograms(
   const results = programs.map((p) => evaluateProgram(p, inputs, options));
 
   // Sort order:
-  // 1. QUALIFIED (shortest turnaround time first)
-  // 2. NEAR_MISS (highest fitScore first, then shortest turnaround)
-  // 3. INELIGIBLE (highest fitScore first, then shortest turnaround)
+  // 1. Status Rank: QUALIFIED > NEAR_MISS > INELIGIBLE
+  // 2. Special Requirements: Prioritize programs WITHOUT special requirements
+  // 3. Performance metric: Shortest turnaround time (or highest fitScore)
   const statusRank: Record<MatchStatus, number> = {
     QUALIFIED: 1,
     NEAR_MISS: 2,
@@ -133,6 +135,13 @@ export function evaluatePrograms(
   return results.sort((a, b) => {
     const rankDiff = statusRank[a.status] - statusRank[b.status];
     if (rankDiff !== 0) return rankDiff;
+
+    // Prioritize programs WITHOUT special requirements
+    const aHasSpecial = Boolean(a.program.special_requirements && a.program.special_requirements.trim().length > 0);
+    const bHasSpecial = Boolean(b.program.special_requirements && b.program.special_requirements.trim().length > 0);
+    if (aHasSpecial !== bHasSpecial) {
+      return aHasSpecial ? 1 : -1;
+    }
 
     if (a.status === 'QUALIFIED') {
       return a.program.turnaround_days - b.program.turnaround_days;
