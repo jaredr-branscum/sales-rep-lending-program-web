@@ -1,11 +1,17 @@
 import React, { useState, useMemo, useRef } from 'react';
-import type { BorrowerInputs, LenderProgram, MatchResult } from './types/lender';
+import type {
+  BorrowerInputs,
+  FilterTab,
+  LenderProgram,
+  MatchResult,
+  SortOption,
+} from './types/lender';
 import {
   DEFAULT_LENDER_PROGRAMS,
   DEFAULT_DATASET_NAME,
   parseLenderCSVWithReport,
 } from './services/csvParser';
-import { evaluatePrograms } from './domain/matchEngine';
+import { evaluatePrograms, sortMatchResults } from './domain/matchEngine';
 import { TriageBar } from './components/TriageBar';
 import { LenderCard } from './components/LenderCard';
 import { ComparisonDrawer } from './components/ComparisonDrawer';
@@ -19,9 +25,6 @@ import {
   Upload,
   Check,
 } from 'lucide-react';
-
-type FilterTab = 'ALL' | 'QUALIFIED' | 'NEAR_MISS' | 'INELIGIBLE';
-type SortOption = 'TURNAROUND_ASC' | 'RATE_ASC' | 'FIT_DESC' | 'MAX_LOAN_DESC';
 
 export const App: React.FC = () => {
   // Live Triage Borrower Inputs
@@ -85,36 +88,7 @@ export const App: React.FC = () => {
     }
 
     // Sort Selection
-    list.sort((a, b) => {
-      // Keep QUALIFIED on top if in ALL tab unless explicitly sorted otherwise
-      if (activeTab === 'ALL') {
-        const rank = (s: string) => (s === 'QUALIFIED' ? 1 : s === 'NEAR_MISS' ? 2 : 3);
-        const rankDiff = rank(a.status) - rank(b.status);
-        if (rankDiff !== 0) return rankDiff;
-      }
-
-      // Prioritize programs WITHOUT special requirements
-      const aHasSpecial = Boolean(a.program.special_requirements && a.program.special_requirements.trim().length > 0);
-      const bHasSpecial = Boolean(b.program.special_requirements && b.program.special_requirements.trim().length > 0);
-      if (aHasSpecial !== bHasSpecial) {
-        return aHasSpecial ? 1 : -1;
-      }
-
-      switch (sortOption) {
-        case 'TURNAROUND_ASC':
-          return a.program.turnaround_days - b.program.turnaround_days;
-        case 'RATE_ASC':
-          return a.program.interest_rate_min - b.program.interest_rate_min;
-        case 'FIT_DESC':
-          return b.fitScore - a.fitScore;
-        case 'MAX_LOAN_DESC':
-          return b.program.max_loan_amount - a.program.max_loan_amount;
-        default:
-          return 0;
-      }
-    });
-
-    return list;
+    return sortMatchResults(list, sortOption, activeTab);
   }, [evaluatedResults, activeTab, searchQuery, sortOption]);
 
   // Selection handlers (max 4)
@@ -165,22 +139,28 @@ export const App: React.FC = () => {
       if (typeof content !== 'string') return;
 
       const report = parseLenderCSVWithReport(content);
-      if (report.programs.length > 0) {
-        setLenderPrograms(report.programs);
-        setActiveDatasetName(file.name);
-        setSelectedPrograms([]);
+
+      // Strict Validation: Reject file if there are schema/parse errors or no valid programs
+      if (report.errors.length > 0 || report.programs.length === 0) {
+        const errorDetail = report.errors[0] || 'The CSV file does not contain valid lender program data.';
         setUploadFeedback({
-          message: `Loaded ${report.programs.length} programs from "${file.name}"`,
-          type: 'success',
-        });
-        setTimeout(() => setUploadFeedback(null), 4000);
-      } else {
-        setUploadFeedback({
-          message: `Could not parse valid lender programs from "${file.name}". ${report.errors[0] || 'Check CSV column structure.'}`,
+          message: `Upload rejected: "${file.name}" is invalid. ${errorDetail}`,
           type: 'error',
         });
         setTimeout(() => setUploadFeedback(null), 6000);
+        return;
       }
+
+      // Valid dataset: Apply to state and reset selection
+      setLenderPrograms(report.programs);
+      setActiveDatasetName(file.name);
+      setSelectedPrograms([]);
+      const warningText = report.warnings.length > 0 ? ` (${report.warnings.length} row(s) skipped)` : '';
+      setUploadFeedback({
+        message: `Successfully loaded ${report.programs.length} programs from "${file.name}"${warningText}.`,
+        type: 'success',
+      });
+      setTimeout(() => setUploadFeedback(null), 4000);
     };
     reader.readAsText(file);
     e.target.value = '';
@@ -386,7 +366,6 @@ export const App: React.FC = () => {
               >
                 <option value="TURNAROUND_ASC">Fastest Turnaround</option>
                 <option value="RATE_ASC">Lowest Min APR</option>
-                <option value="FIT_DESC">Highest Fit Score</option>
                 <option value="MAX_LOAN_DESC">Largest Loan Cap</option>
               </select>
             </div>

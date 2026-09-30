@@ -180,6 +180,8 @@ sales-rep-lending-program-web/
 │   ├── App.tsx                         # Main state coordinator & filter/sort engine
 │   └── main.tsx                        # React application root
 ├── SCOPE_PLAN.md                       # Persona, scope trade-offs, architecture & Playwright QA strategy
+├── AI_USAGE_LOG.md                     # Interactive pair-programming history & human-in-the-loop decisions
+├── LICENSE                             # MIT License
 ├── package.json
 └── vite.config.ts
 ```
@@ -194,3 +196,9 @@ sales-rep-lending-program-web/
   Restart your terminal or command prompt after installing Node.js so your system path refreshes.
 - **Accidentally uploaded the wrong CSV**:
   Click the **"Reset to Latest"** button in the top navigation bar to restore the default rate sheet immediately.
+
+---
+
+## License
+
+This project is open-source and available under the [MIT License](LICENSE).

@@ -1,4 +1,11 @@
-import type { BorrowerInputs, LenderProgram, MatchResult, MatchStatus } from '../types/lender';
+import type {
+  BorrowerInputs,
+  FilterTab,
+  LenderProgram,
+  MatchResult,
+  MatchStatus,
+  SortOption,
+} from '../types/lender';
 
 export interface EvaluationOptions {
   loanRangeTolerancePct?: number; // default: 0.15 (15%)
@@ -152,5 +159,58 @@ export function evaluatePrograms(
     }
 
     return a.program.turnaround_days - b.program.turnaround_days;
+  });
+}
+
+/**
+ * Sorts evaluated match results according to the selected sort option and active tab context.
+ * Primary metric (Rate, Turnaround, Max Loan) takes precedence;
+ * special requirements act strictly as a tie-breaker when primary metrics are equal.
+ */
+export function sortMatchResults(
+  results: MatchResult[],
+  sortOption: SortOption = 'TURNAROUND_ASC',
+  activeTab: FilterTab = 'ALL'
+): MatchResult[] {
+  const statusRank: Record<MatchStatus, number> = {
+    QUALIFIED: 1,
+    NEAR_MISS: 2,
+    INELIGIBLE: 3,
+  };
+
+  return [...results].sort((a, b) => {
+    // Keep QUALIFIED on top if in ALL tab unless explicitly filtered
+    if (activeTab === 'ALL') {
+      const rankDiff = statusRank[a.status] - statusRank[b.status];
+      if (rankDiff !== 0) return rankDiff;
+    }
+
+    // Secondary tie-breaker: Prioritize frictionless programs without special requirements
+    const aHasSpecial = Boolean(a.program.special_requirements && a.program.special_requirements.trim().length > 0);
+    const bHasSpecial = Boolean(b.program.special_requirements && b.program.special_requirements.trim().length > 0);
+    const specialDiff = aHasSpecial !== bHasSpecial ? (aHasSpecial ? 1 : -1) : 0;
+
+    switch (sortOption) {
+      case 'RATE_ASC': {
+        const rateDiff = a.program.interest_rate_min - b.program.interest_rate_min;
+        if (rateDiff !== 0) return rateDiff;
+        if (specialDiff !== 0) return specialDiff;
+        return a.program.turnaround_days - b.program.turnaround_days;
+      }
+      case 'TURNAROUND_ASC': {
+        const speedDiff = a.program.turnaround_days - b.program.turnaround_days;
+        if (speedDiff !== 0) return speedDiff;
+        if (specialDiff !== 0) return specialDiff;
+        return a.program.interest_rate_min - b.program.interest_rate_min;
+      }
+      case 'MAX_LOAN_DESC': {
+        const loanDiff = b.program.max_loan_amount - a.program.max_loan_amount;
+        if (loanDiff !== 0) return loanDiff;
+        if (specialDiff !== 0) return specialDiff;
+        return a.program.interest_rate_min - b.program.interest_rate_min;
+      }
+      default:
+        return specialDiff;
+    }
   });
 }

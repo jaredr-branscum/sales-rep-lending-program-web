@@ -5,7 +5,14 @@ NEWITY_Assessment_B_Lender_Comparison.docx.pdf
 node_modules/
 dist/
 dist-ssr/
+coverage/
+*.tsbuildinfo
 *.local
+
+# Environment variables
+.env
+.env.*
+!.env.example
 
 # Logs
 npm-debug.log*

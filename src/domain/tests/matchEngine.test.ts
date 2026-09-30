@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { evaluateProgram, evaluatePrograms } from '../matchEngine';
+import { evaluateProgram, evaluatePrograms, sortMatchResults } from '../matchEngine';
 import type { LenderProgram, BorrowerInputs } from '../../types/lender';
 
 const baseProgram: LenderProgram = {
@@ -191,6 +191,113 @@ describe('matchEngine', () => {
       // Standard Direct Bank has no special requirements, so it is prioritized first
       expect(results[0].program.lender_name).toBe('Standard Direct Bank');
       expect(results[1].program.lender_name).toBe('Special Conditions Bank');
+    });
+
+    it('sorts strictly by lowest rate (RATE_ASC) without overriding by special requirements', () => {
+      const progLowRateWithSpecial: LenderProgram = {
+        ...baseProgram,
+        lender_name: 'Low Rate Special Bank',
+        interest_rate_min: 5.25,
+        turnaround_days: 45,
+        special_requirements: 'Owner must have 20%+ equity stake',
+      };
+      const progMidRateClean: LenderProgram = {
+        ...baseProgram,
+        lender_name: 'Mid Rate Clean Bank',
+        interest_rate_min: 6.5,
+        turnaround_days: 10,
+        special_requirements: '',
+      };
+      const progHighRateClean: LenderProgram = {
+        ...baseProgram,
+        lender_name: 'High Rate Clean Bank',
+        interest_rate_min: 9.75,
+        turnaround_days: 5,
+        special_requirements: '',
+      };
+
+      const inputs: BorrowerInputs = {
+        loanAmount: 100000,
+        creditScore: 700,
+        yearsInBusiness: 3,
+        industry: 'Retail',
+        collateralAvailable: true,
+      };
+
+      const results = evaluatePrograms(
+        [progMidRateClean, progLowRateWithSpecial, progHighRateClean],
+        inputs
+      );
+      const sortedByRate = sortMatchResults(results, 'RATE_ASC', 'QUALIFIED');
+
+      // The 5.25% loan must be first, despite having special requirements
+      expect(sortedByRate[0].program.lender_name).toBe('Low Rate Special Bank');
+      expect(sortedByRate[0].program.interest_rate_min).toBe(5.25);
+      expect(sortedByRate[1].program.lender_name).toBe('Mid Rate Clean Bank');
+      expect(sortedByRate[1].program.interest_rate_min).toBe(6.5);
+      expect(sortedByRate[2].program.lender_name).toBe('High Rate Clean Bank');
+      expect(sortedByRate[2].program.interest_rate_min).toBe(9.75);
+    });
+
+    it('breaks ties using special requirements when interest rates are identical', () => {
+      const progTiedSpecial: LenderProgram = {
+        ...baseProgram,
+        lender_name: 'Tied Rate Special Bank',
+        interest_rate_min: 6.5,
+        special_requirements: 'Must have clean tax returns',
+      };
+      const progTiedClean: LenderProgram = {
+        ...baseProgram,
+        lender_name: 'Tied Rate Clean Bank',
+        interest_rate_min: 6.5,
+        special_requirements: '',
+      };
+
+      const inputs: BorrowerInputs = {
+        loanAmount: 100000,
+        creditScore: 700,
+        yearsInBusiness: 3,
+        industry: 'Retail',
+        collateralAvailable: true,
+      };
+
+      const results = evaluatePrograms([progTiedSpecial, progTiedClean], inputs);
+      const sorted = sortMatchResults(results, 'RATE_ASC', 'QUALIFIED');
+
+      // When rates are tied at 6.50%, the clean program without special requirements wins tie-breaker
+      expect(sorted[0].program.lender_name).toBe('Tied Rate Clean Bank');
+      expect(sorted[1].program.lender_name).toBe('Tied Rate Special Bank');
+    });
+
+    it('sorts properly for turnaround and loan cap', () => {
+      const progA: LenderProgram = {
+        ...baseProgram,
+        lender_name: 'Fast Small Bank',
+        turnaround_days: 7,
+        max_loan_amount: 500000,
+      };
+      const progB: LenderProgram = {
+        ...baseProgram,
+        lender_name: 'Slow Large Bank',
+        turnaround_days: 30,
+        max_loan_amount: 5000000,
+      };
+
+      const inputs: BorrowerInputs = {
+        loanAmount: 100000,
+        creditScore: 700,
+        yearsInBusiness: 3,
+        industry: 'Retail',
+        collateralAvailable: true,
+      };
+
+      const results = evaluatePrograms([progA, progB], inputs);
+
+      const byTurnaround = sortMatchResults(results, 'TURNAROUND_ASC', 'QUALIFIED');
+      expect(byTurnaround[0].program.lender_name).toBe('Fast Small Bank');
+
+      const byMaxLoan = sortMatchResults(results, 'MAX_LOAN_DESC', 'QUALIFIED');
+      expect(byMaxLoan[0].program.lender_name).toBe('Slow Large Bank');
     });
   });
 });

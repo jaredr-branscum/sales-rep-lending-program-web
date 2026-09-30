@@ -237,20 +237,33 @@ export function parseLenderCSVWithReport(csvText: unknown): CSVParseReport {
 
   if (lines.length < 2) {
     report.warnings.push('CSV contains only a header or no data rows.');
+    report.errors.push('CSV contains only a header or no data rows.');
     return report;
   }
 
   const rawHeaders = parseCSVLine(lines[0]);
   const colMap = resolveColumnIndices(rawHeaders);
 
-  // If header didn't map lender_name, fallback to default positional mapping
-  const usePositional = colMap.lender_name === undefined;
-  if (usePositional) {
-    report.warnings.push('Could not detect standard column headers; falling back to positional indices.');
+  const CORE_ATTRIBUTES = [
+    'program_type',
+    'min_loan_amount',
+    'max_loan_amount',
+    'min_credit_score',
+    'interest_rate_min',
+    'turnaround_days',
+  ];
+  const matchedCoreCount = CORE_ATTRIBUTES.filter((f) => colMap[f] !== undefined).length;
+
+  // Strict Schema Validation: A valid lender spreadsheet MUST identify lender_name and core program attributes
+  if (colMap.lender_name === undefined || matchedCoreCount < 2) {
+    report.errors.push(
+      `Invalid CSV format: Missing required lender program headers. The file must include "lender_name" and key loan parameters (found headers: "${rawHeaders.slice(0, 5).join(', ')}").`
+    );
+    return report;
   }
 
   const getCol = (cols: string[], key: string, positionalIdx: number): string | undefined => {
-    if (!usePositional && colMap[key] !== undefined) {
+    if (colMap[key] !== undefined) {
       return cols[colMap[key]];
     }
     return cols[positionalIdx];

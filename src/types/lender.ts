@@ -46,3 +46,7 @@ export interface MatchResult {
   fitScore: number; // 0-100
   deltas: string[];
 }
+
+export type FilterTab = 'ALL' | 'QUALIFIED' | 'NEAR_MISS' | 'INELIGIBLE';
+
+export type SortOption = 'TURNAROUND_ASC' | 'RATE_ASC' | 'MAX_LOAN_DESC';

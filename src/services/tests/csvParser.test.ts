@@ -153,4 +153,35 @@ Good Bank 2,7(a),20000,200000,660`;
       expect(DEFAULT_LENDER_PROGRAMS[0].max_loan_amount).toBeGreaterThan(0);
     });
   });
+
+  describe('Strict Schema Validation & Malformed File Rejection', () => {
+    it('rejects non-lender CSV files missing lender_name and core headers', () => {
+      const nonLenderCsv = `employee_id,first_name,last_name,department,salary
+E101,Jane,Doe,Engineering,125000
+E102,John,Smith,Marketing,95000`;
+
+      const report = parseLenderCSVWithReport(nonLenderCsv);
+      expect(report.programs).toHaveLength(0);
+      expect(report.errors).toHaveLength(1);
+      expect(report.errors[0]).toContain('Invalid CSV format: Missing required lender program headers');
+    });
+
+    it('rejects CSV with unrecognized headers even if columns have arbitrary data', () => {
+      const randomCsv = `col_a,col_b,col_c,col_d,col_e
+val1,val2,val3,val4,val5`;
+
+      const report = parseLenderCSVWithReport(randomCsv);
+      expect(report.programs).toHaveLength(0);
+      expect(report.errors).toHaveLength(1);
+      expect(report.errors[0]).toContain('Missing required lender program headers');
+    });
+
+    it('rejects header-only CSVs by marking errors', () => {
+      const headerOnly = 'lender_name,program_type,min_loan_amount,max_loan_amount,min_credit_score';
+      const report = parseLenderCSVWithReport(headerOnly);
+      expect(report.programs).toHaveLength(0);
+      expect(report.errors.length).toBeGreaterThan(0);
+      expect(report.errors[0]).toContain('no data rows');
+    });
+  });
 });

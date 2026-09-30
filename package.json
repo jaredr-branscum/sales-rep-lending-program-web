@@ -2,6 +2,9 @@
   "name": "sales-rep-lending-program-web",
   "private": true,
   "version": "1.0.0",
+  "description": "Real-time SBA loan qualification, comparison, and triage web application for sales representatives.",
+  "author": "Jared Branscum",
+  "license": "MIT",
   "type": "module",
   "scripts": {
     "dev": "vite",
