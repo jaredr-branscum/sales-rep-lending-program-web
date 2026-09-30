@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import type { BorrowerInputs } from '../types/lender';
 import { DollarSign, Building2, Calendar, Award, ShieldAlert, CheckCircle2, AlertTriangle } from 'lucide-react';
 
@@ -20,6 +20,26 @@ export const SBA_INDUSTRIES = [
   'Retail',
 ] as const;
 
+/**
+ * Sanitizes years in business input to prevent leading zero accumulation
+ * while preserving valid decimals (e.g. "0.5") and empty backspace states.
+ */
+export function cleanYearsInput(raw: string): string {
+  if (!raw) return '';
+  // Remove any character other than digits and decimal point
+  let cleaned = raw.replace(/[^0-9.]/g, '');
+  // Keep only the first decimal point
+  const parts = cleaned.split('.');
+  if (parts.length > 2) {
+    cleaned = `${parts[0]}.${parts.slice(1).join('')}`;
+  }
+  // Strip leading zeros before another digit (e.g. "02" -> "2", "0125" -> "125", "00" -> "0")
+  if (/^0+[0-9]/.test(cleaned)) {
+    cleaned = cleaned.replace(/^0+/, '') || '0';
+  }
+  return cleaned;
+}
+
 export const TriageBar: React.FC<TriageBarProps> = ({
   inputs,
   onChange,
@@ -27,6 +47,19 @@ export const TriageBar: React.FC<TriageBarProps> = ({
   nearMissCount,
   ineligibleCount,
 }) => {
+  // Local string state to handle backspacing and numeric formatting without locking leading zeros
+  const [yearsInput, setYearsInput] = useState<string>(
+    inputs.yearsInBusiness > 0 ? String(inputs.yearsInBusiness) : ''
+  );
+
+  useEffect(() => {
+    const parsed = parseFloat(yearsInput);
+    const currentNum = Number.isNaN(parsed) ? 0 : parsed;
+    if (currentNum !== inputs.yearsInBusiness) {
+      setYearsInput(inputs.yearsInBusiness > 0 ? String(inputs.yearsInBusiness) : '');
+    }
+  }, [inputs.yearsInBusiness]);
+
   const handleLoanChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const rawVal = e.target.value.replace(/[^0-9]/g, '');
     const num = rawVal ? Math.min(10000000, Math.max(0, parseInt(rawVal, 10))) : 0;
@@ -34,8 +67,48 @@ export const TriageBar: React.FC<TriageBarProps> = ({
   };
 
   const handleYearsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const val = parseFloat(e.target.value);
-    onChange({ ...inputs, yearsInBusiness: Number.isNaN(val) ? 0 : Math.max(0, val) });
+    const cleaned = cleanYearsInput(e.target.value);
+    setYearsInput(cleaned);
+
+    if (cleaned === '' || cleaned === '.') {
+      onChange({ ...inputs, yearsInBusiness: 0 });
+      return;
+    }
+
+    const val = parseFloat(cleaned);
+    if (!Number.isNaN(val)) {
+      onChange({ ...inputs, yearsInBusiness: Math.min(50, Math.max(0, val)) });
+    }
+  };
+
+  const handleYearsBlur = () => {
+    if (yearsInput === '' || yearsInput === '.') {
+      setYearsInput('');
+      onChange({ ...inputs, yearsInBusiness: 0 });
+    } else {
+      const val = parseFloat(yearsInput);
+      if (!Number.isNaN(val)) {
+        const clamped = Math.min(50, Math.max(0, val));
+        setYearsInput(clamped > 0 ? String(clamped) : (yearsInput === '0' ? '0' : ''));
+        onChange({ ...inputs, yearsInBusiness: clamped });
+      }
+    }
+  };
+
+  const handleYearsKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      const current = parseFloat(yearsInput) || 0;
+      const next = Math.min(50, Math.round((current + 0.5) * 10) / 10);
+      setYearsInput(String(next));
+      onChange({ ...inputs, yearsInBusiness: next });
+    } else if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      const current = parseFloat(yearsInput) || 0;
+      const next = Math.max(0, Math.round((current - 0.5) * 10) / 10);
+      setYearsInput(next > 0 ? String(next) : '');
+      onChange({ ...inputs, yearsInBusiness: next });
+    }
   };
 
   const handleCreditChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -85,13 +158,14 @@ export const TriageBar: React.FC<TriageBarProps> = ({
                 <Calendar className="w-3.5 h-3.5 text-blue-400 shrink-0" />
                 <input
                   id="triage-years-in-biz"
-                  type="number"
-                  step="0.5"
-                  min="0"
-                  max="50"
-                  value={inputs.yearsInBusiness}
+                  type="text"
+                  inputMode="decimal"
+                  value={yearsInput}
                   onChange={handleYearsChange}
-                  className="w-full bg-transparent text-sm font-semibold text-white focus:outline-none"
+                  onBlur={handleYearsBlur}
+                  onKeyDown={handleYearsKeyDown}
+                  placeholder="0"
+                  className="w-full bg-transparent text-sm font-semibold text-white focus:outline-none placeholder:text-slate-500"
                 />
               </div>
             </div>
